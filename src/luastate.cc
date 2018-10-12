@@ -7,6 +7,10 @@
 #include <nan.h>
 #include <v8.h>
 
+#ifndef SKIP_DL_OPEN
+#include <dlfcn.h>
+#endif
+
 using v8::Function;
 using v8::Local;
 using v8::Number;
@@ -76,6 +80,16 @@ void LuaState::Init(v8::Local<v8::Object> exports) {
 
 	constructor.Reset(tpl->GetFunction());
 	exports->Set(Nan::New("LuaState").ToLocalChecked(), tpl->GetFunction());
+
+	// linux node at least on heroku couldn't resolve dl symbols on bin libs
+	// later we will add cflags to skip the step for other platforms
+	#ifndef SKIP_DL_OPEN
+	if (!dlopen("libluajit-5.1.so", RTLD_NOW | RTLD_GLOBAL)) {
+		fprintf(stderr, "Failed to preload luajit: %s\n", dlerror());
+	} else {
+		fprintf(stderr, "Preloading lua .so library\n");
+	}
+	#endif
 }
 
 void LuaState::New(const Nan::FunctionCallbackInfo<v8::Value>& info) {
