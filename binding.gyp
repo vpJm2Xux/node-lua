@@ -69,7 +69,8 @@
               "<!(echo $NODELUA_LIB)"
             ],
             "libraries": [
-              "<!(find /usr/include /usr/local/include $NODELUA_LIB -name libluajit-5.1.so | head -n 1)"
+              "-Wl,-export-dynamic",
+              "-lluajit-5.1"
             ],
             "actions": []
           }
