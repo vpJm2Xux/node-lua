@@ -10,6 +10,9 @@
         [
           "OS=='win'",
           {
+            'cflags': [
+              "-DSKIP_DL_OPEN=1"
+            ],
             "include_dirs": [
               "./win64luajit"
             ],
@@ -40,6 +43,9 @@
         [
           'OS=="mac"',
           {
+            'cflags': [
+              "-DSKIP_DL_OPEN=1"
+            ],
             "include_dirs": [
               "./maclualib/include"
             ],
