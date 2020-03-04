@@ -74,8 +74,8 @@ void LuaState::Init(v8::Local<v8::Object> exports) {
 	Nan::SetPrototypeMethod(tpl, "SetTop", SetTop);
 	Nan::SetPrototypeMethod(tpl, "Replace", Replace);
 
-	constructor.Reset(tpl->GetFunction());
-	exports->Set(Nan::New("LuaState").ToLocalChecked(), tpl->GetFunction());
+	constructor.Reset(tpl->GetFunction(Nan::GetCurrentContext()).ToLocalChecked());
+	(void)exports->Set(Nan::GetCurrentContext(), Nan::New("LuaState").ToLocalChecked(), tpl->GetFunction(Nan::GetCurrentContext()).ToLocalChecked());
 }
 
 void LuaState::New(const Nan::FunctionCallbackInfo<v8::Value>& info) {
@@ -112,7 +112,8 @@ int LuaState::CallFunction(lua_State* L){
 		for(iter = self->functions.begin(); iter != self->functions.end(); iter++) {
 			if(strcmp(iter->first, func_name) == 0) {
 				v8::Local<v8::Function> func = Nan::New(iter->second);
-				ret_val = Nan::MakeCallback(Nan::GetCurrentContext()->Global(), func, argc, argv);
+				v8::Local<v8::Object> recv;
+				ret_val = func->Call(Nan::GetCurrentContext(), recv, argc, argv).ToLocalChecked();
 				break;
 			}
 		}

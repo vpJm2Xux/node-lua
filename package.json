@@ -6,10 +6,10 @@
   "main": "index.js",
   "keywords": [
     "lua",
-		"lua5.1",
-		"node-lua",
-		"node-lua-binding",
-		"nodejs"
+    "lua5.1",
+    "node-lua",
+    "node-lua-binding",
+    "nodejs"
   ],
   "scripts": {
     "install": "node-gyp rebuild"

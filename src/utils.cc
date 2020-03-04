@@ -8,7 +8,7 @@ char * get_str(v8::Local<v8::Value> val){
    return NULL;
  }
 
- v8::String::Utf8Value val_string(val);
+ v8::String::Utf8Value val_string(v8::Isolate::GetCurrent(), Nan::To<v8::String>(val).ToLocalChecked());
  char * val_char_ptr = (char *) malloc(val_string.length() + 1);
  strcpy(val_char_ptr, *val_string);
  return val_char_ptr;
@@ -33,7 +33,7 @@ v8::Local<v8::Value> lua_to_value(lua_State* L, int i){
      while(lua_next(L, -2) != 0){
 	v8::Local<v8::Value> key = lua_to_value(L, -2);
 	v8::Local<v8::Value> value = lua_to_value(L, -1);
-	obj->Set(key, value);
+	(void)obj->Set(Nan::GetCurrentContext(), key, value);
 	lua_pop(L, 1);
      }
      return obj;
@@ -47,20 +47,20 @@ v8::Local<v8::Value> lua_to_value(lua_State* L, int i){
 
 void push_value_to_lua(lua_State* L, v8::Local<v8::Value> value){
 	if (value->IsString()){
-   lua_pushstring(L, get_str(value->ToString()));
+   lua_pushstring(L, get_str(Nan::To<v8::String>(value).ToLocalChecked()));
  }else if(value->IsNumber()){
    int i_value = Nan::To<int32_t>(value).FromMaybe(0);
    lua_pushinteger(L, i_value);
  }else if(value->IsBoolean()){
-   int b_value = (int)value->ToBoolean()->Value();
+   int b_value = (int)Nan::To<v8::Boolean>(value).ToLocalChecked()->Value();
    lua_pushboolean(L, b_value);
  }else if(value->IsObject()){
    lua_newtable(L);
-   v8::Local<v8::Object> obj = value->ToObject();
-   v8::Local<v8::Array> keys = obj->GetPropertyNames();
+   v8::Local<v8::Object> obj = Nan::To<v8::Object>(value).ToLocalChecked();
+   v8::Local<v8::Array> keys = obj->GetPropertyNames(Nan::GetCurrentContext()).ToLocalChecked();
    for(uint32_t i = 0; i < keys->Length(); ++i){
-     v8::Local<v8::Value> key = keys->Get(i);
-     v8::Local<v8::Value> val = obj->Get(key);
+     v8::Local<v8::Value> key = keys->Get(Nan::GetCurrentContext(), i).ToLocalChecked();
+     v8::Local<v8::Value> val = obj->Get(Nan::GetCurrentContext(), key).ToLocalChecked();
      push_value_to_lua(L, key);
      push_value_to_lua(L, val);
      lua_settable(L, -3);
